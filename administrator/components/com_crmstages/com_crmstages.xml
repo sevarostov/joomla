@@ -1,0 +1,28 @@
+<extension type="component" method="upgrade" version="6.0" minimum_joomla_version="6.0.0">
+	<namespace path="src">Joomla\Component\Crmstages</namespace>
+	<name>com_crmstages</name>
+	
+	<install> <!-- Runs on install -->
+		<sql>
+			<file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
+		</sql>
+	</install>
+	<uninstall> <!-- Runs on uninstall -->
+		<sql>
+			<file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
+		</sql>
+	</uninstall>
+	<languages>
+		<language tag="en-GB">language/en-GB/en-GB.com_crmstages.ini</language>
+	</languages>
+	
+	<administration>
+		<files folder="com_crmstages">
+			<filename>com_crmstages.php</filename>
+			<filename>com_crmstages.xml</filename>
+			<folder>src</folder>
+			<folder>sql</folder>
+			<folder>language</folder>
+		</files>
+	</administration>
+</extension>

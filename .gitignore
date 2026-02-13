@@ -1,2 +1,6 @@
-.docker/*
 .env
+.DS_Store
+.docker/*
+administrator/.DS_Store
+administrator/cache*
+administrator/logs

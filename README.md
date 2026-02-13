@@ -15,17 +15,12 @@ Installation
 git clone https://github.com/sevarostov/joomla
 ```
 
-```
 ## Configure environment:
 ```
 cp .env.example .env
 ```
-# Edit .env with your credentials
 
-## Run database migrations:
-```
-php bin/console doctrine:migrations:migrate
-```
+## Edit .env with your credentials
 
 ## Docker compose:
 ```

@@ -1,9 +1,15 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
+use Joomla\CMS\Router\Route;
+
+$transitionUrl = Route::_(
+	'index.php?option=com_crmstages&task=stageTransition.transition&company_id=' . (int)$this->data['company_id'],
+	false,
+	Route::TLS_IGNORE,
+	true // Disable SEF for AJAX-like calls
+);
 
 ?>
 
@@ -35,7 +41,7 @@ use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 	</div>
 
 	<!-- Available Actions -->
-	<?php if (!empty($this->data['actions'])): ?>
+	<?php if (!empty($this->data['actions']) and !$this->data['last_stage']): ?>
 		<div class="card mb-4">
 			<div class="card-header bg-success text-white">
 				<h5><?php echo Text::_('COM_CRMSTAGES_AVAILABLE_ACTIONS'); ?></h5>
@@ -45,7 +51,15 @@ use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 					<?php foreach ($this->data['actions'] as $action): ?>
 						<li class="list-group-item d-flex justify-content-between align-items-center">
 							<div>
-								<strong><?php echo Text::_($action['title']); ?></strong>
+								<strong>
+									<a
+											class="btn btn-success"
+											href="<?php echo $transitionUrl; ?>"
+											data-company-id="<?php echo (int)$this->data['company_id']; ?>"
+									>
+										<?php echo Text::_($action['title']); ?>
+									</a>
+								</strong>
 								<?php if (isset($action['description'])): ?>
 									<div class="mt-1 text-muted small">
 										<?php echo Text::_($action['description']); ?>
@@ -62,7 +76,6 @@ use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 			<?php echo Text::_('COM_CRMSTAGES_NO_ACTIONS_AVAILABLE'); ?>
 		</p>
 	<?php endif; ?>
-
 
 
 	<!-- Manager Instructions -->

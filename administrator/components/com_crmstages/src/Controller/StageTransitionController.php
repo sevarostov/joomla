@@ -2,11 +2,13 @@
 
 namespace Joomla\Component\Crmstages\Administrator\Controller;
 
+use Exception;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Router\Route;
 use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -43,88 +45,98 @@ class StageTransitionController extends BaseController
 	{
 		$input = $this->app->getInput();
 		$companyId = $input->getInt('company_id', 0);
-		$targetStageCode = $input->getString('stage', '');
 
-		// Validate input
-		if (!$companyId || !$targetStageCode) {
-			return new JsonResponse(400, 'Invalid request: missing company_id or stage');
+		if (!$companyId) {
+			return new JsonResponse(400, 'Invalid request: missing company_id');
 		}
 
-		try {
-			// Given: Load current company state
-			$currentState = $this->getCurrentState($companyId);
+				try {
+		$currentStage = $this->getCurrentStage($companyId);
 
-			if (!$currentState) {
-				return new JsonResponse(404, 'Company not found');
-			}
-
-			$currentStageCode = $currentState->stage_code;
-
-			// When: Check transition eligibility
-			$transitionResult = $this->canTransition(
-				$currentStageCode,
-				$targetStageCode,
-				$companyId,
-			);
-
-			if (!$transitionResult['allowed']) {
-				return new JsonResponse(403, 'Transition not allowed: ' . $transitionResult['reason']);
-			}
-
-			// Then: Execute transition
-			$success = $this->performTransition(
-				$companyId,
-				$targetStageCode,
-				$currentState->stage_id,
-			);
-
-			if ($success) {
-				return new JsonResponse(403, sprintf(
-					'%s to %s Stage transition successful',
-					$currentStageCode,
-					$targetStageCode,
-				));
-			} else {
-				return new JsonResponse(500, 'Failed to update stage');
-			}
-
-		} catch (\Exception $e) {
-			return new JsonResponse(500, 'An error occured');
+		if (!$currentStage) {
+			return new JsonResponse(404, 'Company not found');
 		}
+
+		$targetStageCode = $this->getTargetStageCode($currentStage->stage_ordering + 1);
+
+		$currentStageCode = $currentStage->stage_code;
+		$transitionResult = $this->canTransition(
+			$currentStageCode,
+			$targetStageCode->stage_code,
+			$companyId,
+		);
+
+		if (!$transitionResult['allowed']) {
+			return new JsonResponse(403, 'Transition not allowed: ' . $transitionResult['reason']);
+		}
+
+		$success = $this->performTransition(
+			$companyId,
+			$targetStageCode->stage_code,
+		);
+
+		if ($success) {
+
+			$this->setRedirect(Route::_('index.php?option=com_crmstages&view=companycard&id=' . $companyId, false));
+
+		} else {
+			return new JsonResponse(500, 'Failed to update stage');
+		}
+
+				} catch (Exception $e) {
+					return new JsonResponse(500, 'An error occured');
+				}
 	}
 
 	/**
-	 * Get current state of company
+	 * Get current stage of company
 	 *
 	 * @param int $companyId
 	 *
 	 * @return object|null
 	 */
-	private function getCurrentState(int $companyId)
+	private function getCurrentStage(int $companyId)
 	{
 		$query = $this->db->getQuery(true)
 			->select([
 				'c.id AS company_id',
 				's.id AS stage_id',
 				's.code AS stage_code',
-				's.name AS stage_name'
+				's.name AS stage_name',
+				's.ordering AS stage_ordering'
 			])
 			->from($this->db->quoteName('#__crm_companies', 'c'))
 			->join(
 				'INNER',
-				$this->db->quoteName('#__crm_action_log', 'l'),
-				'l.company_id = c.id',
-			)
-			->join(
-				'INNER',
 				$this->db->quoteName('#__crm_stages', 's'),
-				's.id = l.stage_id',
+				's.id = c.stage_id',
 			)
 			->where($this->db->quoteName('c.id') . ' = :companyid')
-			->order($this->db->quoteName('l.created') . ' DESC')
-			->setLimit(1)
 			->bind(':companyid', $companyId, ParameterType::INTEGER);
 
+		$this->db->setQuery($query);
+		return $this->db->loadObject();
+	}
+
+	/**
+	 * Get target stage
+	 *
+	 * @param int $ordering
+	 *
+	 * @return object|null
+	 */
+	private function getTargetStageCode(int $ordering)
+	{
+		$query = $this->db->getQuery(true)
+			->select([
+				's.id AS stage_id',
+				's.code AS stage_code',
+				's.name AS stage_name',
+				's.ordering AS stage_ordering'
+			])
+			->from($this->db->quoteName('#__crm_stages', 's'))
+			->where($this->db->quoteName('s.ordering') . ' = :ordering')
+			->bind(':ordering', $ordering, ParameterType::INTEGER);
 
 		$this->db->setQuery($query);
 		return $this->db->loadObject();
@@ -134,12 +146,12 @@ class StageTransitionController extends BaseController
 	 * Check if transition from current to target stage is allowed
 	 *
 	 * @param string $currentStage
-	 * @param string $targetStage
+	 * @param string $targetStageCode
 	 * @param int $companyId
 	 *
 	 * @return array ['allowed' => bool, 'reason' => string]
 	 */
-	private function canTransition(string $currentStage, string $targetStage, int $companyId): array
+	private function canTransition(string $currentStage, string $targetStageCode, int $companyId): array
 	{
 		// Get stage configuration
 		$stages = StageHelper::getStagesConfig();
@@ -151,7 +163,7 @@ class StageTransitionController extends BaseController
 			];
 		}
 
-		if (!isset($stages[$targetStage])) {
+		if (!isset($stages[$targetStageCode])) {
 			return [
 				'allowed' => false,
 				'reason' => 'Target stage does not exist'
@@ -159,32 +171,32 @@ class StageTransitionController extends BaseController
 		}
 
 		// Rule 1: Direct transition must be allowed
-		if (!in_array($targetStage, $stages[$currentStage]['allowed_transitions'])) {
+		if (!in_array($targetStageCode, $stages[$currentStage]['allowed_transitions'])) {
 			return [
 				'allowed' => false,
 				'reason' => sprintf(
 					'Transition from %s to %s is not permitted',
 					$currentStage,
-					$targetStage,
+					$targetStageCode,
 				)
 			];
 		}
 
 		// Rule 2: All required actions must have occurred
-		foreach ($stages[$targetStage]['required_events'] as $stageId) {
-			if (!$this->hasEventOccurred($companyId, $stages[$targetStage]['allowed_transitions'], $stageId)) {
+		foreach ($stages[$targetStageCode]['required_events'] as $actionCode) {
+			if (!$this->hasEventOccurred($companyId, $actionCode)) {
 				return [
 					'allowed' => false,
 					'reason' => sprintf(
 						'Required event "%s" has not occurred',
-						$stageId,
+						$actionCode,
 					)
 				];
 			}
 		}
 
 		// Rule 3: No blocking conditions
-		if (in_array($currentStage, $stages[$targetStage]['blocked_transitions'])) {
+		if (in_array($currentStage, $stages[$targetStageCode]['blocked_transitions'])) {
 			return [
 				'allowed' => false,
 				'reason' => 'Transition blocked by business rules'
@@ -198,24 +210,26 @@ class StageTransitionController extends BaseController
 	 * Check if a specific event has occurred for company
 	 *
 	 * @param int $companyId
-	 * @param int $stageId
-	 * @param int $actionid
+	 * @param string $actionCode
 	 *
 	 * @return bool
 	 */
-	private function hasEventOccurred(int $companyId, int $stageId, int $actionid): bool
+	private function hasEventOccurred(int $companyId, string $actionCode): bool
 	{
 		$query = $this->db->getQuery(true)
 			->select('COUNT(*)')
-			->from($this->db->quoteName('#__crm_action_log'))
+			->from($this->db->quoteName('#__crm_action_log', 'l'))
+			->join(
+				'INNER',
+				'#__crm_actions as action',
+				'action.id = l.action_id'
+			)
 			->where([
 				$this->db->quoteName('company_id') . ' = :companyid',
-				$this->db->quoteName('stage_id') . ' = :stageid',
-				$this->db->quoteName('action_id') . ' = :actionid'
+				$this->db->quoteName('action.code') . ' = :actionCode',
 			])
 			->bind(':companyid', $companyId, ParameterType::INTEGER)
-			->bind(':stageid', $stageId, ParameterType::INTEGER)
-			->bind(':actionid', $actionid, ParameterType::INTEGER);
+			->bind(':actionCode', $actionCode, ParameterType::STRING);
 
 		$this->db->setQuery($query);
 
@@ -227,15 +241,13 @@ class StageTransitionController extends BaseController
 	 *
 	 * @param int $companyId
 	 * @param string $targetStageCode
-	 * @param int $currentStageId
 	 *
 	 * @return bool
 	 */
-	private function performTransition(int $companyId, string $targetStageCode, int $currentStageId): bool
+	private function performTransition(int $companyId, string $targetStageCode): bool
 	{
 		$db = $this->db;
 
-		// Get target stage ID
 		$stageQuery = $db->getQuery(true)
 			->select('id')
 			->from($db->quoteName('#__crm_stages'))
@@ -252,6 +264,32 @@ class StageTransitionController extends BaseController
 			return false;
 		}
 
+		$actionQuery = $db->getQuery(true)
+			->select('a.id as action_id')
+			->from($db->quoteName('#__crm_stage_actions', 'sa'))
+			->join(
+				'INNER',
+				$this->db->quoteName('#__crm_actions', 'a'),
+				'a.id = sa.action_id',
+			)
+			->join(
+				'INNER',
+				$this->db->quoteName('#__crm_stages', 's'),
+				's.id = sa.stage_id',
+			)
+			->where($db->quoteName('s.id') . ' = :id')
+			->bind(':id', $targetStageId);
+		$db->setQuery($stageQuery);
+		$targetActionId = $db->loadResult();
+
+		if (!$targetActionId) {
+			$this->app->enqueueMessage(
+				Text::_('COM_CRMSTAGES_ERROR_ACTION_NOT_FOUND'),
+				'error',
+			);
+			return false;
+		}
+
 		// Start transaction
 		$db->transactionStart();
 
@@ -261,11 +299,13 @@ class StageTransitionController extends BaseController
 			$columns = [
 				'company_id',
 				'stage_id',
+				'action_id',
 				'created'
 			];
 			$values = [
 				(int)$companyId,
 				(int)$targetStageId,
+				(int)$targetActionId,
 				$db->quote(Factory::getDate()->toSql()),
 			];
 
@@ -291,7 +331,7 @@ class StageTransitionController extends BaseController
 			$db->transactionCommit();
 
 			$this->app->enqueueMessage(
-				Text::sprintf('COM_CRMSTAGES_TRANSITION_SUCCESS', $targetStageCode),
+				Text::sprintf('COM_CRMSTAGES_TRANSITION_SUCCESS', $targetStageId),
 				'message',
 			);
 

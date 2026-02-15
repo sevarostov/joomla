@@ -88,31 +88,30 @@ class DisplayController extends BaseController
 	 */
 	private function loadCompanyCardData(int $companyId): ?array
 	{
-		// 1. Get current stage
 		$currentStage = $this->getCurrentStage($companyId);
 		if (!$currentStage) {
 			return null;
 		}
 
-		// 2. Get available actions
 		$actions = StageHelper::getAvailableActions(
 			$currentStage['code'],
 		);
 
-		// 3. Get manager instructions
 		$instructions = StageHelper::getInstructions(
 			$currentStage['code'],
 		);
 
-		// 4. Get event history
 		$logs = $this->getEventHistory($companyId);
+
+		$lastStage = $this->getLastStage($currentStage);
 
 		return [
 			'company_id' => $companyId,
 			'current_stage' => $currentStage,
 			'actions' => $actions,
 			'instructions' => $instructions,
-			'logs' => $logs
+			'logs' => $logs,
+			'last_stage' => $lastStage,
 		];
 	}
 
@@ -129,7 +128,8 @@ class DisplayController extends BaseController
 			->select([
 				's.id',
 				's.code',
-				's.name'
+				's.name',
+				's.ordering'
 			])
 			->from($this->db->quoteName('#__crm_companies', 'companies'))
 			->join(
@@ -173,5 +173,29 @@ class DisplayController extends BaseController
 
 		$this->db->setQuery($query);
 		return (array)$this->db->loadObjectList();
+	}
+
+	/**
+	 * If the stage is last
+	 *
+	 * @param array $currentStage
+	 *
+	 * @return bool
+	 */
+	private function getLastStage(array $currentStage): bool
+	{
+		$query = $this->db->getQuery(true)
+			->select('COUNT(*)')
+			->from($this->db->quoteName('#__crm_stages', 's'))
+			->where([
+				$this->db->quoteName('s.active') . ' = true',
+				$this->db->quoteName('s.ordering') . ' > :ordering',
+			])
+			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER)
+			;
+
+		$this->db->setQuery($query);
+
+		return !!($this->db->loadResult() > 0);
 	}
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Joomla\Component\Crmstages\Administrator\Helper;
 
 use Joomla\CMS\Language\Text;
@@ -24,49 +25,49 @@ class StageHelper
 			'C1' => [ // Touched
 				'name' => 'Touched',
 				'allowed_transitions' => ['C2'],
-				'required_events' => ['attempt_of_contact', 'conversation_with_lpr_comment'],
+				'required_events' => [],
 				'blocked_transitions' => ['W1', 'W2', 'W3', 'H1', 'H2', 'A1']
 			],
 			'C2' => [ // Aware
 				'name' => 'Aware',
 				'allowed_transitions' => ['W1'],
-				'required_events' => ['filling_out_discovery_form'],
+				'required_events' => ['conversation_with_lpr_comment'],
 				'blocked_transitions' => ['W2', 'W3', 'H1', 'H2', 'A1']
 			],
 			'W1' => [ // Interested
 				'name' => 'Interested',
 				'allowed_transitions' => ['W2'],
-				'required_events' => ['planning_demo'],
+				'required_events' => ['filling_out_discovery_form', 'conversation_with_lpr_comment'],
 				'blocked_transitions' => ['W3', 'H1', 'H2', 'A1']
 			],
 			'W2' => [ // demo_planned
 				'name' => 'Demo Planned',
 				'allowed_transitions' => ['W3'],
-				'required_events' => ['demo_conducted'],
+				'required_events' => ['planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
 				'blocked_transitions' => ['H1', 'H2', 'A1']
 			],
 			'W3' => [ // Demo_done
 				'name' => 'Demo Done',
 				'allowed_transitions' => ['H1'],
-				'required_events' => ['invoice_issued'],
+				'required_events' => ['demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
 				'blocked_transitions' => ['H2', 'A1']
 			],
 			'H1' => [ // Committed
 				'name' => 'Committed',
 				'allowed_transitions' => ['H2'],
-				'required_events' => ['payment_received'],
+				'required_events' => ['invoice_issued', 'demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
 				'blocked_transitions' => ['A1']
 			],
 			'H2' => [ // Customer
 				'name' => 'Customer',
 				'allowed_transitions' => ['A1'],
-				'required_events' => ['first_id_card_issued'],
+				'required_events' => ['payment_received', 'invoice_issued', 'demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
 				'blocked_transitions' => []
 			],
 			'A1' => [ // Activated
 				'name' => 'Activated',
 				'allowed_transitions' => [],
-				'required_events' => [],
+				'required_events' => ['first_id_card_issued'],
 				'blocked_transitions' => ['C0', 'C1', 'C2', 'W1', 'W2', 'W3', 'H1', 'H2']
 			]
 		];

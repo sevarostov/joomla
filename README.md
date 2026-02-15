@@ -27,3 +27,7 @@ cp .env.example .env
 docker compose up -d
 docker compose down
 ```
+## UI Card view
+```
+http://localhost/administrator/index.php?option=com_crmstages&view=companycard&id=1
+```

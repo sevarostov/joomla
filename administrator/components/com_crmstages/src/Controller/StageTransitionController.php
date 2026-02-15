@@ -1,13 +1,13 @@
 <?php
 
-namespace Joomla\Component\Crmstages\Controller;
+namespace Joomla\Component\Crmstages\Administrator\Controller;
 
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\Component\Crmstages\Helper\StageHelper;
+use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 

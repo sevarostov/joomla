@@ -1,7 +1,21 @@
 <extension type="component" method="upgrade" version="6.0" minimum_joomla_version="6.0.0">
-	<namespace path="src">Joomla\Component\Crmstages</namespace>
+	<namespace path="src">Joomla\Component\Crmstages\Administrator</namespace>
 	<name>com_crmstages</name>
-	
+	<administration>
+		<files folder="com_crmstages">
+			<filename>com_crmstages.xml</filename>
+			<folder>services</folder>
+			<folder>src</folder>
+			<folder>sql</folder>
+			<folder>language</folder>
+			<folder>tmpl</folder>
+		</files>
+		<services>
+			<service id="com_crmstages" type="component">
+				<file>src/service/provider.php</file>
+			</service>
+		</services>
+	</administration>
 	<install> <!-- Runs on install -->
 		<sql>
 			<file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
@@ -15,14 +29,4 @@
 	<languages>
 		<language tag="en-GB">language/en-GB/en-GB.com_crmstages.ini</language>
 	</languages>
-	
-	<administration>
-		<files folder="com_crmstages">
-			<filename>com_crmstages.php</filename>
-			<filename>com_crmstages.xml</filename>
-			<folder>src</folder>
-			<folder>sql</folder>
-			<folder>language</folder>
-		</files>
-	</administration>
 </extension>

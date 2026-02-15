@@ -1,6 +1,6 @@
 <?php
 
-namespace Joomla\Component\Crmstages\Model;
+namespace Joomla\Component\Crmstages\Administrator\Model;
 
 
 use Joomla\CMS\Factory;

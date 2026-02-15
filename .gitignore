@@ -4,3 +4,4 @@
 administrator/.DS_Store
 administrator/cache*
 administrator/logs
+configuration.php

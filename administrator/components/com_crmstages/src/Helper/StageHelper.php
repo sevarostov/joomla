@@ -1,5 +1,5 @@
 <?php
-namespace Joomla\Component\Crmstages\Helper;
+namespace Joomla\Component\Crmstages\Administrator\Helper;
 
 use Joomla\CMS\Language\Text;
 

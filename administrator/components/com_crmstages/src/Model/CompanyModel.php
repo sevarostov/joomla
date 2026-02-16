@@ -2,13 +2,8 @@
 
 namespace Joomla\Component\Crmstages\Administrator\Model;
 
-
-use Joomla\CMS\Factory;
-use Joomla\CMS\Form\Form;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\MVC\Model\ItemModel;
-use Joomla\CMS\Table\TableInterface;
+use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
 use Joomla\Database\ParameterType;
 
 
@@ -17,165 +12,134 @@ use Joomla\Database\ParameterType;
 // phpcs:enable PSR1.Files.SideEffects
 
 
-class CompanyModel extends AdminModel
+class CompanyModel extends ItemModel
 {
-	protected $text_prefix = 'COM_CRMSTAGES_COMPANY';
-	public $typeAlias = 'com_crmstages.company';
-	public function getItem($pk = null)
+	/**
+	 * Load all data for company card
+	 *
+	 * @param int $companyId
+	 *
+	 * @return array|null
+	 */
+	public function loadCompanyCardData(int $companyId): ?array
 	{
-		$pk = is_null($pk) ? $this->getState('company.id') : $pk;
-
-		if ($this->_item === null)
-		{
-			$this->_item = [];
+		$currentStage = $this->getCurrentStage($companyId);
+		if (!$currentStage) {
+			return null;
 		}
 
-		if (!isset($this->_item[$pk]))
-		{
-			try
-			{
-				$db = $this->getDatabase();
-				$query = $db->getQuery(true);
-
-				$query->select('*')
-					->from($db->quoteName('#__crm_companies'))
-					->where($db->quoteName('id') . ' = :id')
-					->bind(':id', $pk, ParameterType::INTEGER);
-
-				$db->setQuery($query);
-				$item = $db->loadObject();
-
-				if (empty($item))
-				{
-					throw new \Exception(Text::_('COM_CRMSTAGES_ERROR_ITEM_NOT_FOUND'));
-				}
-
-				// Load current stage
-				$stageQuery = $db->getQuery(true)
-					->select('s.code, s.name')
-					->from('#__crm_stages AS s')
-					->join('INNER', '#__crm_action_log AS l', 'l.stage_id = s.id')
-					->where('l.company_id = :companyid')
-					->order('l.created DESC')
-					->setLimit(1)
-					->bind(':companyid', $item->id, ParameterType::INTEGER);
-
-				$db->setQuery($stageQuery);
-				$stage = $db->loadObject();
-
-				$item->stage = $stage;
-
-				// Load action history
-				$historyQuery = $db->getQuery(true)
-					->select('l.created, s.code, s.name, a.name AS action')
-					->from('#__crm_action_log AS l')
-					->join('INNER', '#__crm_stages AS s', 's.id = l.stage_id')
-					->join('LEFT', '#__crm_actions AS a', 'a.id = l.action_id')
-					->where('l.company_id = :companyid')
-					->order('l.created DESC')
-					->bind(':companyid', $item->id, ParameterType::INTEGER);
-
-				$db->setQuery($historyQuery);
-				$item->history = $db->loadObjectList();
-
-				$this->_item[$pk] = $item;
-			}
-			catch (\Exception $e)
-			{
-				$this->setError($e->getMessage());
-				return false;
-			}
-		}
-
-		return $this->_item[$pk];
-	}
-
-	/**
-	 * Method to get a table object, load it if necessary.
-	 *
-	 * @param   string  $name     The table name. Optional.
-	 * @param   string  $prefix   The class prefix. Optional.
-	 * @param   array   $options  Configuration array for model. Optional.
-	 *
-	 * @return  TableInterface  A Table object
-	 */
-	public function getTable($name = '', $prefix = '', $options = [])
-	{
-		$name = $name ?: 'Company';
-		$prefix = $prefix ?: 'CrmstagesTable';
-
-		return Factory::getContainer()->get($prefix . $name);
-	}
-
-	/**
-	 * Method to get the record form.
-	 *
-	 * @param   array    $data      Data for the form. [optional]
-	 * @param   boolean  $loadData  True if the form is to load its own data (default case), false if not. [optional]
-	 *
-	 * @return  Form|boolean  A Form object on success, false on failure
-	 */
-	public function getForm($data = [], $loadData = true)
-	{
-		$form = $this->loadForm(
-			'com_crmstages.company',
-			'company',
-			['control' => 'jform', 'load_data' => $loadData]
+		$actions = StageHelper::getAvailableActions(
+			$currentStage['code'],
 		);
 
-		if (empty($form)) {
-			return false;
-		}
+		$instructions = StageHelper::getInstructions(
+			$currentStage['code'],
+		);
 
-		// Disable fields if user can't edit state
-		if (!$this->canEditState((object)$data)) {
-			$form->setFieldAttribute('stage_id', 'disabled', 'true');
-			$form->setFieldAttribute('stage_id', 'filter', 'unset');
-		}
+		$logs = $this->getEventHistory($companyId);
 
-		return $form;
+		$lastStage = $this->getLastStage($currentStage);
+
+		return [
+			'company_id' => $companyId,
+			'current_stage' => $currentStage,
+			'actions' => $actions,
+			'instructions' => $instructions,
+			'logs' => $logs,
+			'last_stage' => $lastStage,
+		];
 	}
 
 	/**
-	 * Method to test whether a record can be deleted.
+	 * Get current stage of company
 	 *
-	 * @param   object  $record  A record object.
-	 * @return  boolean  True if allowed to delete the record.
+	 * @param int $companyId
+	 *
+	 * @return array|null
 	 */
-	protected function canDelete($record)
+	private function getCurrentStage(int $companyId): ?array
 	{
-		if (!empty($record->id)) {
-			return $this->getCurrentUser()->authorise('core.delete', 'com_crmstages.company.' . (int)$record->id);
-		}
-		return false;
+		$this->db = $this->getDatabase();
+		$query = $this->db->getQuery(true)
+			->select([
+				's.id',
+				's.code',
+				's.name',
+				's.ordering'
+			])
+			->from($this->db->quoteName('#__crm_companies', 'companies'))
+			->join(
+				'INNER',
+				$this->db->quoteName('#__crm_stages', 's'),
+				's.id = companies.stage_id',
+			)
+			->where([
+				$this->db->quoteName('companies.id') . ' = :companyid',
+			])
+			->bind(':companyid', $companyId, ParameterType::INTEGER);
+		$this->db->setQuery($query);
+		$result = $this->db->loadObject();
+
+		return $result ? (array)$result : null;
 	}
 
 	/**
-	 * Method to test whether a record can have its state changed.
+	 * Get event history for company
 	 *
-	 * @param   object  $record  A record object.
-	 * @return  boolean  True if allowed to change the state of the record.
+	 * @param int $companyId
+	 *
+	 * @return array
 	 */
-	protected function canEditState($record)
+	private function getEventHistory(int $companyId): array
 	{
-		return $this->getCurrentUser()->authorise('core.edit.state', 'com_crmstages.company.' . (int)$record->id);
+		$this->db    = $this->getDatabase();
+		$query = $this->db->getQuery(true)
+			->select([
+				'l.created',
+				's.name AS stage_name',
+			])
+			->from($this->db->quoteName('#__crm_action_log', 'l'))
+			->join(
+				'LEFT',
+				$this->db->quoteName('#__crm_stages', 's'),
+				's.id = l.stage_id',
+			)
+			->where($this->db->quoteName('l.company_id') . ' = :companyid')
+			->order($this->db->quoteName('l.created') . ' DESC')
+			->setLimit(10)
+			->bind(':companyid', $companyId, ParameterType::INTEGER);
+
+		$this->db->setQuery($query);
+		return (array)$this->db->loadObjectList();
 	}
 
 	/**
-	 * Loads form data for editing
+	 * If the stage is last
 	 *
-	 * @return  mixed  The data for the form
+	 * @param array $currentStage
+	 *
+	 * @return bool
 	 */
-	protected function loadFormData()
+	private function getLastStage(array $currentStage): bool
 	{
-		$app = Factory::getApplication();
-		$data = $app->getUserState('com_crmstages.edit.company.data', []);
+		$this->db = $this->getDatabase();
+		$query = $this->db->getQuery(true)
+			->select('COUNT(*)')
+			->from($this->db->quoteName('#__crm_stages', 's'))
+			->where([
+				$this->db->quoteName('s.active') . ' = true',
+				$this->db->quoteName('s.ordering') . ' > :ordering',
+				$this->db->quoteName('s.code') . ' != "N0"',
+			])
+			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER)
+		;
+		$this->db->setQuery($query);
 
-		if (empty($data)) {
-			$data = $this->getItem();
-		}
+		return !!($this->db->loadResult()) == 0;
+	}
 
-		$this->preprocessData('com_crmstages.company', $data);
-		return $data;
+	public function getItem($pk = null)
+	{
+		// TODO: Implement getItem() method.
 	}
 }

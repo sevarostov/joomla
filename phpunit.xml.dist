@@ -23,6 +23,20 @@
     </include>
   </source>
   <php>
+    <server name='HTTP_HOST' value='http://localhost' />
     <env name="APP_ENV" value="test"/>
+    <env name="MYSQL_VERSION" value="8.4" />
+    <env name="MYSQL_ROOT_PASSWORD" value="pwd" />
+    <env name="MYSQL_DATABASE" value="joomla_crm" />
+    <env name="MYSQL_USER" value="joomla_user" />
+    <env name="MYSQL_PASSWORD" value="pwd" />
+    <env name="JOOMLA_DB_HOST" value="db" />
+    <env name="JOOMLA_DB_USER" value="joomla_user" />
+    <env name="JOOMLA_DB_PASSWORD" value="pwd" />
+    <env name="JOOMLA_DB_NAME" value="joomla_crm" />
+    <env name="JOOMLA_DB_PREFIX" value="jprefix_" />
+    <env name="JOOMLA_SMTP_HOST" value="localhost" />
+    <env name="JOOMLA_SMTP_PORT" value="25" />
+    <env name="JOOMLA_MAILER" value="smtp" />
   </php>
 </phpunit>

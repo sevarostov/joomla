@@ -2,7 +2,7 @@
   "type": "project",
   "license": "proprietary",
   "require-dev": {
-	"phpunit/phpunit": "*"
+	"phpunit/phpunit": "^12."
   },
   "config": {
 	"preferred-install": {

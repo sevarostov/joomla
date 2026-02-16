@@ -10,4 +10,5 @@ configuration.php
 ###> phpunit ###
 vendor/*
 phpunit.xml
+.phpunit.cache*
 ###< phpunit ###

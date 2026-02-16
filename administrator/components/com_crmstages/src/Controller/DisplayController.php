@@ -3,11 +3,12 @@
 
 namespace Joomla\Component\Crmstages\Administrator\Controller;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactory;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\Component\Crmstages\Administrator\Helper\StageHelper;
+use Joomla\Component\Crmstages\Administrator\Model\CompanyModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 
@@ -21,14 +22,12 @@ use Joomla\Database\ParameterType;
  */
 class DisplayController extends BaseController
 {
-	private DatabaseInterface $db;
 	protected $app;
 
 
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
-		$this->db = Factory::getContainer()->get(DatabaseInterface::class);
 		$this->app = Factory::getApplication();
 		$this->factory = new MVCFactory('\\Joomla\\Component\\Crmstages');
 	}
@@ -63,7 +62,7 @@ class DisplayController extends BaseController
 		}
 
 		try {
-			$data = $this->loadCompanyCardData($companyId);
+			$data = (new CompanyModel([], $this->factory))->loadCompanyCardData($companyId);
 
 			if (!$data) {
 				return new JsonResponse(404, 'Company not found');
@@ -73,130 +72,8 @@ class DisplayController extends BaseController
 			$view->set('data', $data);
 			$view->display();
 
-		} catch (\Exception $e) {
+		} catch (Exception) {
 			return new JsonResponse(500, 'An error occured');
 		}
-
-	}
-
-	/**
-	 * Load all data for company card
-	 *
-	 * @param int $companyId
-	 *
-	 * @return array|null
-	 */
-	private function loadCompanyCardData(int $companyId): ?array
-	{
-		$currentStage = $this->getCurrentStage($companyId);
-		if (!$currentStage) {
-			return null;
-		}
-
-		$actions = StageHelper::getAvailableActions(
-			$currentStage['code'],
-		);
-
-		$instructions = StageHelper::getInstructions(
-			$currentStage['code'],
-		);
-
-		$logs = $this->getEventHistory($companyId);
-
-		$lastStage = $this->getLastStage($currentStage);
-
-		return [
-			'company_id' => $companyId,
-			'current_stage' => $currentStage,
-			'actions' => $actions,
-			'instructions' => $instructions,
-			'logs' => $logs,
-			'last_stage' => $lastStage,
-		];
-	}
-
-	/**
-	 * Get current stage of company
-	 *
-	 * @param int $companyId
-	 *
-	 * @return array|null
-	 */
-	private function getCurrentStage(int $companyId): ?array
-	{
-		$query = $this->db->getQuery(true)
-			->select([
-				's.id',
-				's.code',
-				's.name',
-				's.ordering'
-			])
-			->from($this->db->quoteName('#__crm_companies', 'companies'))
-			->join(
-				'INNER',
-				$this->db->quoteName('#__crm_stages', 's'),
-				's.id = companies.stage_id',
-			)
-			->where([
-				$this->db->quoteName('companies.id') . ' = :companyid',
-			])
-			->bind(':companyid', $companyId, ParameterType::INTEGER);
-		$this->db->setQuery($query);
-		$result = $this->db->loadObject();
-
-		return $result ? (array)$result : null;
-	}
-
-	/**
-	 * Get event history for company
-	 *
-	 * @param int $companyId
-	 *
-	 * @return array
-	 */
-	private function getEventHistory(int $companyId): array
-	{
-		$query = $this->db->getQuery(true)
-			->select([
-				'l.created',
-				's.name AS stage_name',
-			])
-			->from($this->db->quoteName('#__crm_action_log', 'l'))
-			->join(
-				'LEFT',
-				$this->db->quoteName('#__crm_stages', 's'),
-				's.id = l.stage_id',
-			)
-			->where($this->db->quoteName('l.company_id') . ' = :companyid')
-			->order($this->db->quoteName('l.created') . ' DESC')
-			->setLimit(10)
-			->bind(':companyid', $companyId, ParameterType::INTEGER);
-
-		$this->db->setQuery($query);
-		return (array)$this->db->loadObjectList();
-	}
-
-	/**
-	 * If the stage is last
-	 *
-	 * @param array $currentStage
-	 *
-	 * @return bool
-	 */
-	private function getLastStage(array $currentStage): bool
-	{
-		$query = $this->db->getQuery(true)
-			->select('COUNT(*)')
-			->from($this->db->quoteName('#__crm_stages', 's'))
-			->where([
-				$this->db->quoteName('s.active') . ' = true',
-				$this->db->quoteName('s.ordering') . ' > :ordering',
-				$this->db->quoteName('s.code') . ' != "N0"',
-			])
-			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER)
-			;
-		$this->db->setQuery($query);
-
-		return !!($this->db->loadResult()) == 0;
 	}
 }

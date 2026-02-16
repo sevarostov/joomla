@@ -39,5 +39,10 @@ http://localhost/administrator/index.php?option=com_crmstages&task=stageTransiti
 ## PhpUnit
 ```
 composer instal
+```
+## Disable Plugin **System - Debug**
+http://localhost/administrator/index.php?option=com_plugins&view=plugins
+
+```
 vendor/bin/phpunit
 ```

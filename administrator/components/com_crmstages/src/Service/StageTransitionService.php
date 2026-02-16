@@ -236,7 +236,7 @@ class StageTransitionService
 	 *
 	 * @return bool
 	 */
-	private function performTransition(int $companyId, string $targetStageCode): bool
+	public function performTransition(int $companyId, string $targetStageCode): bool
 	{
 		$db = $this->db;
 

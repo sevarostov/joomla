@@ -38,7 +38,7 @@ http://localhost/administrator/index.php?option=com_crmstages&task=stageTransiti
 
 ## PhpUnit
 ```
-composer instal
+docker compose exec joomla composer instal
 ```
 ## Disable Plugin **System - Debug**
 http://localhost/administrator/index.php?option=com_plugins&view=plugins

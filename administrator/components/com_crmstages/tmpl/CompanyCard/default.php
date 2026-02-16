@@ -3,9 +3,12 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 
 $transitionUrl = Route::_(
-	'index.php?option=com_crmstages&task=stageTransition.transition&company_id=' . (int)$this->data['company_id'],
+	'index.php?option=com_crmstages&task=stageTransition.transition&company_id='
+	. (int)$this->data['company_id'].'&'
+	. Session::getFormToken() .'=1',
 	false,
 	Route::TLS_IGNORE,
 	true // Disable SEF for AJAX-like calls

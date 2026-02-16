@@ -13,62 +13,134 @@ class StageHelper
 	 *
 	 * @return array
 	 */
-	public static function getStagesConfig()
+	public static function getStagesConfig(): array
 	{
 		return [
-			'C0' => [ // Ice
+			Constants::STAGE_ICE => [ // Ice
 				'name' => 'Ice',
-				'allowed_transitions' => ['C1'],
+				'allowed_transitions' => [Constants::STAGE_TOUCHED],
 				'required_events' => [],
-				'blocked_transitions' => ['C2', 'W1', 'W2', 'W3', 'H1', 'H2', 'A1']
+				'blocked_transitions' => [
+					Constants::STAGE_AWARE,
+					Constants::STAGE_INTERESTED,
+					Constants::STAGE_DEMO_PLANNED,
+					Constants::STAGE_DEMO_DONE,
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'C1' => [ // Touched
+			Constants::STAGE_TOUCHED => [ // Touched
 				'name' => 'Touched',
-				'allowed_transitions' => ['C2'],
+				'allowed_transitions' => [Constants::STAGE_AWARE],
 				'required_events' => [],
-				'blocked_transitions' => ['W1', 'W2', 'W3', 'H1', 'H2', 'A1']
+				'blocked_transitions' => [
+					Constants::STAGE_INTERESTED,
+					Constants::STAGE_DEMO_PLANNED,
+					Constants::STAGE_DEMO_DONE,
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'C2' => [ // Aware
+			Constants::STAGE_AWARE => [ // Aware
 				'name' => 'Aware',
-				'allowed_transitions' => ['W1'],
-				'required_events' => ['conversation_with_lpr_comment'],
-				'blocked_transitions' => ['W2', 'W3', 'H1', 'H2', 'A1']
+				'allowed_transitions' => [Constants::STAGE_INTERESTED],
+				'required_events' => [Constants::ACTION_CONVO_LPR_COMMENT],
+				'blocked_transitions' => [
+					Constants::STAGE_DEMO_PLANNED,
+					Constants::STAGE_DEMO_DONE,
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'W1' => [ // Interested
+			Constants::STAGE_INTERESTED => [ // Interested
 				'name' => 'Interested',
-				'allowed_transitions' => ['W2'],
-				'required_events' => ['filling_out_discovery_form', 'conversation_with_lpr_comment'],
-				'blocked_transitions' => ['W3', 'H1', 'H2', 'A1']
+				'allowed_transitions' => [Constants::STAGE_DEMO_PLANNED],
+				'required_events' => [
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT
+				],
+				'blocked_transitions' => [
+					Constants::STAGE_DEMO_DONE,
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'W2' => [ // demo_planned
+			Constants::STAGE_DEMO_PLANNED => [ // demo_planned
 				'name' => 'Demo Planned',
-				'allowed_transitions' => ['W3'],
-				'required_events' => ['planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
-				'blocked_transitions' => ['H1', 'H2', 'A1']
+				'allowed_transitions' => [Constants::STAGE_DEMO_DONE],
+				'required_events' => [
+					Constants::ACTION_PLANNING_DEMO,
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT
+				],
+				'blocked_transitions' => [
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'W3' => [ // Demo_done
+			Constants::STAGE_DEMO_DONE => [ // Demo_done
 				'name' => 'Demo Done',
-				'allowed_transitions' => ['H1'],
-				'required_events' => ['demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
-				'blocked_transitions' => ['H2', 'A1']
+				'allowed_transitions' => [Constants::STAGE_COMMITTED],
+				'required_events' => [
+					Constants::ACTION_DEMO_CONDUCTED,
+					Constants::ACTION_PLANNING_DEMO,
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT
+				],
+				'blocked_transitions' => [
+					Constants::STAGE_CUSTOMER,
+					Constants::STAGE_ACTIVATED
+				]
 			],
-			'H1' => [ // Committed
+			Constants::STAGE_COMMITTED => [ // Committed
 				'name' => 'Committed',
-				'allowed_transitions' => ['H2'],
-				'required_events' => ['invoice_issued', 'demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
-				'blocked_transitions' => ['A1']
+				'allowed_transitions' => [Constants::STAGE_CUSTOMER],
+				'required_events' => [
+					Constants::ACTION_INVOICE_ISSUED,
+					Constants::ACTION_DEMO_CONDUCTED,
+					Constants::ACTION_PLANNING_DEMO,
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT
+				],
+				'blocked_transitions' => [Constants::STAGE_ACTIVATED]
 			],
-			'H2' => [ // Customer
+			Constants::STAGE_CUSTOMER => [ // Customer
 				'name' => 'Customer',
-				'allowed_transitions' => ['A1'],
-				'required_events' => ['payment_received', 'invoice_issued', 'demo_conducted', 'planning_demo', 'filling_out_discovery_form', 'conversation_with_lpr_comment'],
+				'allowed_transitions' => [Constants::STAGE_ACTIVATED],
+				'required_events' => [
+					Constants::ACTION_PAYMENT_RECEIVED,
+					Constants::ACTION_INVOICE_ISSUED,
+					Constants::ACTION_DEMO_CONDUCTED,
+					Constants::ACTION_PLANNING_DEMO,
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT],
 				'blocked_transitions' => []
 			],
-			'A1' => [ // Activated
+			Constants::STAGE_ACTIVATED => [ // Activated
 				'name' => 'Activated',
 				'allowed_transitions' => [],
-				'required_events' => ['first_id_card_issued'],
-				'blocked_transitions' => ['C0', 'C1', 'C2', 'W1', 'W2', 'W3', 'H1', 'H2']
+				'required_events' => [
+					Constants::ACTION_ID_CARD_ISSUED,
+					Constants::ACTION_PAYMENT_RECEIVED,
+					Constants::ACTION_INVOICE_ISSUED,
+					Constants::ACTION_DEMO_CONDUCTED,
+					Constants::ACTION_PLANNING_DEMO,
+					Constants::ACTION_DISCOVERY_FORM,
+					Constants::ACTION_CONVO_LPR_COMMENT],
+				'blocked_transitions' => [
+					Constants::STAGE_ICE,
+					Constants::STAGE_TOUCHED,
+					Constants::STAGE_AWARE,
+					Constants::STAGE_INTERESTED,
+					Constants::STAGE_DEMO_PLANNED,
+					Constants::STAGE_DEMO_DONE,
+					Constants::STAGE_COMMITTED,
+					Constants::STAGE_CUSTOMER,]
 			]
 		];
 	}
@@ -80,7 +152,7 @@ class StageHelper
 	 *
 	 * @return array
 	 */
-	public static function getAvailableActions($currentStageCode)
+	public static function getAvailableActions(string $currentStageCode): array
 	{
 		$actions = [];
 		$config = self::getStagesConfig();
@@ -90,77 +162,77 @@ class StageHelper
 		}
 
 		switch ($currentStageCode) {
-		case 'C0': // Ice
+		case Constants::STAGE_ICE: // Ice
 			$actions[] = [
-				'code' => 'call',
+				'code' => Constants::ACTION_ATTEMPT_CONTACT,
 				'title' => 'COM_CRMSTAGES_ACTION_CALL',
 				'description' => 'Make initial contact attempt'
 			];
 			break;
 
-		case 'C1': // Touched
+		case Constants::STAGE_TOUCHED: // Touched
 			$actions[] = [
-				'code' => 'conversation_lpr',
+				'code' => Constants::ACTION_CONVO_LPR_COMMENT,
 				'title' => 'COM_CRMSTAGES_ACTION_CONVERSATION_LPR',
 				'description' => 'Have a conversation with the decision maker'
 			];
+			break;
+
+		case Constants::STAGE_AWARE: // Aware
 			$actions[] = [
-				'code' => 'discovery_form',
+				'code' => Constants::ACTION_DISCOVERY_FORM,
 				'title' => 'COM_CRMSTAGES_ACTION_DISCOVERY_FORM',
 				'description' => 'Fill out the discovery form'
 			];
 			break;
 
-		case 'C2': // Aware
+		case Constants::STAGE_INTERESTED: // Interested
 			$actions[] = [
-				'code' => 'schedule_demo',
+				'code' => Constants::ACTION_PLANNING_DEMO,
 				'title' => 'COM_CRMSTAGES_ACTION_SCHEDULE_DEMO',
 				'description' => 'Plan and schedule a demo presentation'
 			];
 			break;
 
-		case 'W1': // Interested
+		case Constants::STAGE_DEMO_PLANNED: // demo_planned
 			$actions[] = [
-				'code' => 'confirm_demo',
+				'code' => Constants::ACTION_DEMO_CONDUCTED,
 				'title' => 'COM_CRMSTAGES_ACTION_CONFIRM_DEMO',
 				'description' => 'Confirm demo date and time'
 			];
 			break;
 
-		case 'W2': // demo_planned
+		case Constants::STAGE_DEMO_DONE: // Demo_done
 			$actions[] = [
-				'code' => 'conduct_demo',
-				'title' => 'COM_CRMSTAGES_ACTION_CONDUCT_DEMO',
-				'description' => 'Conduct the scheduled demo'
-			];
-			break;
-
-		case 'W3': // Demo_done
-			$actions[] = [
-				'code' => 'issue_invoice',
+				'code' => Constants::ACTION_INVOICE_ISSUED,
 				'title' => 'COM_CRMSTAGES_ACTION_ISSUE_INVOICE',
 				'description' => 'Issue invoice for the service'
 			];
 			break;
 
-		case 'H1': // Committed
+		case Constants::STAGE_COMMITTED: // Committed
 			$actions[] = [
-				'code' => 'receive_payment',
+				'code' => Constants::ACTION_PAYMENT_RECEIVED,
 				'title' => 'COM_CRMSTAGES_ACTION_RECEIVE_PAYMENT',
 				'description' => 'Process received payment'
 			];
 			break;
 
-		case 'H2': // Customer
+		case Constants::STAGE_CUSTOMER: // Customer
 			$actions[] = [
-				'code' => 'issue_id_card',
+				'code' => Constants::ACTION_ID_CARD_ISSUED,
 				'title' => 'COM_CRMSTAGES_ACTION_ISSUE_ID_CARD',
-				'description' => 'Issue first ID card'
+				'description' => 'Issue ID Card'
+
 			];
 			break;
-
 			// Activated stage has no further actions
-		case 'A1':
+		case Constants::STAGE_ACTIVATED:
+			$actions[] = [
+				'code' => "",
+				'title' => '',
+				'description' => ''
+			];
 			break;
 		}
 
@@ -174,7 +246,7 @@ class StageHelper
 	 *
 	 * @return string
 	 */
-	public static function getInstructions($stageCode)
+	public static function getInstructions(string $stageCode): string
 	{
 		$instructions = [
 			'C0' => '<p>' . Text::_('COM_CRMSTAGES_INSTRUCTIONS_ICE') . '</p>' .

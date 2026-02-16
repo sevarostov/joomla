@@ -31,3 +31,13 @@ docker compose down
 ```
 http://localhost/administrator/index.php?option=com_crmstages&view=companycard&id=1
 ```
+## Stage Transitions
+```
+http://localhost/administrator/index.php?option=com_crmstages&task=stageTransition.transition&company_id=1
+```
+
+## PhpUnit
+```
+composer instal
+vendor/bin/phpunit
+```

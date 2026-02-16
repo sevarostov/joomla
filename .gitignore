@@ -1,7 +1,13 @@
 .env
 .DS_Store
+.idea*
 .docker/*
 administrator/.DS_Store
 administrator/cache*
 administrator/logs
 configuration.php
+
+###> phpunit ###
+vendor/*
+phpunit.xml
+###< phpunit ###

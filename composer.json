@@ -1,0 +1,29 @@
+{
+  "type": "project",
+  "license": "proprietary",
+  "require-dev": {
+	"phpunit/phpunit": "*"
+  },
+  "config": {
+	"preferred-install": {
+	  "*": "dist"
+	},
+	"sort-packages": true,
+	"audit": {
+	  "block-insecure": false
+	},
+	"allow-plugins": {
+	  "symfony/flex": true
+	}
+  },
+  "autoload": {
+	"psr-4": {
+	  "Joomla\\Component\\Admin\\": "administrator/"
+	}
+  },
+  "autoload-dev": {
+	"psr-4": {
+	  "App\\Tests\\": "tests/"
+	}
+  }
+}

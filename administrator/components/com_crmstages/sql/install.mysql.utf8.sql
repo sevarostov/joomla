@@ -123,41 +123,45 @@ SELECT
     CASE
         WHEN s.code = 'C1' THEN
             CASE a.code
-                WHEN 'attempt_of_contact' THEN 1
-                WHEN 'conversation_with_lpr_comment' THEN 2
+                WHEN 'attempt_of_contact' THEN 2
                 ELSE 99
                 END
         WHEN s.code = 'C2' THEN
             CASE a.code
-                WHEN 'filling_out_discovery_form' THEN 1
+                WHEN 'conversation_with_lpr_comment' THEN 1
                 ELSE 99
                 END
         WHEN s.code = 'W1' THEN
             CASE a.code
-                WHEN 'planning_demo' THEN 1
+                WHEN 'filling_out_discovery_form' THEN 1
                 ELSE 99
                 END
         WHEN s.code = 'W2' THEN
             CASE a.code
-                WHEN 'demo_conducted' THEN 1
+                WHEN 'planning_demo' THEN 1
                 ELSE 99
                 END
         WHEN s.code = 'W3' THEN
             CASE a.code
-                WHEN 'invoice_issued' THEN 1
+                WHEN 'demo_conducted' THEN 1
                 ELSE 99
                 END
         WHEN s.code = 'H1' THEN
             CASE a.code
-                WHEN 'payment_received' THEN 1
+                WHEN 'invoice_issued' THEN 1
                 ELSE 99
                 END
         WHEN s.code = 'H2' THEN
             CASE a.code
+                WHEN 'payment_received' THEN 1
+                ELSE 99
+                END
+        WHEN s.code = 'A1' THEN
+            CASE a.code
                 WHEN 'first_id_card_issued' THEN 1
                 ELSE 99
                 END
-        ELSE 99  -- For stages like C0, N0: no valid actions
+        ELSE 99  -- For stages like  N0: no valid actions
         END AS ordering
 FROM
     `#__crm_stages` s

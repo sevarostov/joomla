@@ -169,6 +169,7 @@ class DisplayController extends BaseController
 			)
 			->where($this->db->quoteName('l.company_id') . ' = :companyid')
 			->order($this->db->quoteName('l.created') . ' DESC')
+			->setLimit(10)
 			->bind(':companyid', $companyId, ParameterType::INTEGER);
 
 		$this->db->setQuery($query);
@@ -190,12 +191,12 @@ class DisplayController extends BaseController
 			->where([
 				$this->db->quoteName('s.active') . ' = true',
 				$this->db->quoteName('s.ordering') . ' > :ordering',
+				$this->db->quoteName('s.code') . ' != "N0"',
 			])
 			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER)
 			;
-
 		$this->db->setQuery($query);
 
-		return !!($this->db->loadResult() > 0);
+		return !!($this->db->loadResult()) == 0;
 	}
 }

@@ -38,7 +38,7 @@ http://localhost/administrator/index.php?option=com_crmstages&task=stageTransiti
 
 ## PhpUnit
 ```
-docker compose exec joomla composer instal
+composer instal
 ```
 
 ````

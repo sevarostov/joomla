@@ -70,7 +70,7 @@ class DisplayController extends BaseController
 			$view->set('data', $data);
 			$view->display();
 
-		} catch (Exception) {
+		} catch (Exception $exception) {
 			return new JsonResponse(500, 'An error occured');
 		}
 	}

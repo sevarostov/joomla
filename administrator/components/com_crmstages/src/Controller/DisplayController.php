@@ -9,8 +9,6 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactory;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Component\Crmstages\Administrator\Model\CompanyModel;
-use Joomla\Database\DatabaseInterface;
-use Joomla\Database\ParameterType;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -61,7 +59,7 @@ class DisplayController extends BaseController
 			return new JsonResponse(400, 'Company ID is required');
 		}
 
-		try {
+//		try {
 			$data = (new CompanyModel([], $this->factory))->loadCompanyCardData($companyId);
 
 			if (!$data) {
@@ -72,8 +70,8 @@ class DisplayController extends BaseController
 			$view->set('data', $data);
 			$view->display();
 
-		} catch (Exception) {
-			return new JsonResponse(500, 'An error occured');
-		}
+//		} catch (Exception) {
+//			return new JsonResponse(500, 'An error occured');
+//		}
 	}
 }

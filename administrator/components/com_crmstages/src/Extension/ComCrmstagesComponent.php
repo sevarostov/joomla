@@ -2,17 +2,11 @@
 
 namespace Joomla\Component\Crmstages\Administrator\Extension;
 
-use Joomla\CMS\Categories\CategoryServiceInterface;
-use Joomla\CMS\Categories\CategoryServiceTrait;
 use Joomla\CMS\Component\Router\RouterServiceInterface;
 use Joomla\CMS\Component\Router\RouterServiceTrait;
 use Joomla\CMS\Extension\BootableExtensionInterface;
 use Joomla\CMS\Extension\MVCComponent;
 use Joomla\CMS\HTML\HTMLRegistryAwareTrait;
-use Joomla\CMS\Tag\TagServiceInterface;
-use Joomla\CMS\Tag\TagServiceTrait;
-use Joomla\Component\Banners\Administrator\Service\Html\Banner;
-use Joomla\Database\DatabaseInterface;
 use Psr\Container\ContainerInterface;
 
 // phpcs:disable PSR1.Files.SideEffects

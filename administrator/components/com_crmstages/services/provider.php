@@ -1,5 +1,4 @@
 <?php
-namespace Joomla\Component\Crmstages\Administrator\Services;
 
 defined('_JEXEC') or die;
 

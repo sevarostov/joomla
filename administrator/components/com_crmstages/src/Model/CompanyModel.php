@@ -9,6 +9,7 @@ use Joomla\Database\ParameterType;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
+
 // phpcs:enable PSR1.Files.SideEffects
 
 
@@ -92,7 +93,7 @@ class CompanyModel extends ItemModel
 	 */
 	private function getEventHistory(int $companyId): array
 	{
-		$this->db    = $this->getDatabase();
+		$this->db = $this->getDatabase();
 		$query = $this->db->getQuery(true)
 			->select([
 				'l.created',
@@ -131,8 +132,7 @@ class CompanyModel extends ItemModel
 				$this->db->quoteName('s.ordering') . ' > :ordering',
 				$this->db->quoteName('s.code') . ' != "N0"',
 			])
-			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER)
-		;
+			->bind(':ordering', $currentStage['ordering'], ParameterType::INTEGER);
 		$this->db->setQuery($query);
 
 		return !!($this->db->loadResult()) == 0;

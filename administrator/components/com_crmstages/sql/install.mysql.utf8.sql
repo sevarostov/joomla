@@ -167,13 +167,14 @@ FROM
     `#__crm_stages` s
         INNER JOIN `#__crm_actions` a ON (
         -- Define allowed combinations
-        (s.code = 'C1' AND a.code IN ('attempt_of_contact', 'conversation_with_lpr_comment')) OR
-        (s.code = 'C2' AND a.code = 'filling_out_discovery_form') OR
-        (s.code = 'W1' AND a.code = 'planning_demo') OR
-        (s.code = 'W2' AND a.code = 'demo_conducted') OR
-        (s.code = 'W3' AND a.code = 'invoice_issued') OR
-        (s.code = 'H1' AND a.code = 'payment_received') OR
-        (s.code = 'H2' AND a.code = 'first_id_card_issued')
+        (s.code = 'C1' AND a.code = 'attempt_of_contact') OR
+        (s.code = 'C2' AND a.code = 'conversation_with_lpr_comment') OR
+        (s.code = 'W1' AND a.code = 'filling_out_discovery_form') OR
+        (s.code = 'W2' AND a.code = 'planning_demo') OR
+        (s.code = 'W3' AND a.code = 'demo_conducted') OR
+        (s.code = 'H1' AND a.code = 'invoice_issued') OR
+        (s.code = 'H2' AND a.code = 'payment_received') OR
+        (s.code = 'A1' AND a.code = 'first_id_card_issued')
         )
 WHERE
     s.active = 1  -- Only link to active stages

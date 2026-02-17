@@ -4,8 +4,11 @@
 .docker/*
 
 ###> joomla ###
+!administrator/
 administrator/*
-!administrator/components/com_crmstages/*
+!administrator/components/
+administrator/components/*
+!administrator/components/com_crmstages
 api/*
 cache/*
 cli/*

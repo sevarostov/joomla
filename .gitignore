@@ -5,7 +5,7 @@
 
 ###> joomla ###
 /administrator/*
-!/administrator/components/com_crmstages
+!/administrator/components/com_crmstages/*
 api/*
 cache/*
 cli/*

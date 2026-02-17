@@ -40,9 +40,16 @@ http://localhost/administrator/index.php?option=com_crmstages&task=stageTransiti
 ```
 docker compose exec joomla composer instal
 ```
+
+````
+cp phpunit.xml.dist phpunit.xml
+````
+## Edit phpunit.xml with custom settings
+
 ## Disable Plugin **System - Debug**
 http://localhost/administrator/index.php?option=com_plugins&view=plugins
 
+## run tests
 ```
-vendor/bin/phpunit
+docker compose exec joomla vendor/bin/phpunit
 ```

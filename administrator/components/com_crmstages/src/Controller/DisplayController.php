@@ -59,7 +59,7 @@ class DisplayController extends BaseController
 			return new JsonResponse(400, 'Company ID is required');
 		}
 
-//		try {
+		try {
 			$data = (new CompanyModel([], $this->factory))->loadCompanyCardData($companyId);
 
 			if (!$data) {
@@ -70,8 +70,8 @@ class DisplayController extends BaseController
 			$view->set('data', $data);
 			$view->display();
 
-//		} catch (Exception) {
-//			return new JsonResponse(500, 'An error occured');
-//		}
+		} catch (Exception) {
+			return new JsonResponse(500, 'An error occured');
+		}
 	}
 }

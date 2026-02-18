@@ -56,7 +56,7 @@ defined('_JEXEC') or die;
 
 		try {
 			$result = (new StageTransitionService($this->app, $this->db))->transition($companyId);
-
+dd('$result2',$result);
 			if (!$result) {
 				return new JsonResponse(400, 'Bad Request');
 			}
